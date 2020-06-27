@@ -12086,59 +12086,6 @@ var global = arguments[3];
 
 }));
 
-},{}],"uqh0":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.Answers = void 0;
-
-var Answers =
-/** @class */
-function () {
-  function Answers() {
-    this.values = [];
-  }
-
-  Object.defineProperty(Answers.prototype, "yesCount", {
-    get: function get() {
-      return this.values.filter(function (v) {
-        return v.isYes;
-      }).length;
-    },
-    enumerable: false,
-    configurable: true
-  });
-  Object.defineProperty(Answers.prototype, "noCount", {
-    get: function get() {
-      return this.values.filter(function (v) {
-        return v.isNo;
-      }).length;
-    },
-    enumerable: false,
-    configurable: true
-  });
-  Object.defineProperty(Answers.prototype, "totalCount", {
-    get: function get() {
-      return this.values.length;
-    },
-    enumerable: false,
-    configurable: true
-  });
-
-  Answers.prototype.add = function (answer) {
-    this.values.push(answer);
-  };
-
-  Answers.prototype.clear = function () {
-    this.values = [];
-  };
-
-  return Answers;
-}();
-
-exports.Answers = Answers;
 },{}],"Imv0":[function(require,module,exports) {
 "use strict";
 
@@ -12172,80 +12119,47 @@ function () {
 }();
 
 exports.User = User;
-},{}],"NUXp":[function(require,module,exports) {
+},{}],"EIJf":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.SwitchOnSpeaker = void 0;
+exports.SwitchOnAudience = void 0;
 
 var Role_1 = require("../Role");
 
 var User_1 = require("../User");
 
-var Answers_1 = require("./Answers");
-
-var SwitchOnSpeaker =
+var SwitchOnAudience =
 /** @class */
 function () {
-  function SwitchOnSpeaker(switchOnWebSocket) {
-    var _this = this;
-
+  function SwitchOnAudience(switchOnWebSocket) {
     this.switchOnWebSocket = switchOnWebSocket;
-    this.user = new User_1.User("u" + Date.now, Role_1.Role.speaker);
-    this.answers = new Answers_1.Answers();
-
-    this.switchOnWebSocket.onAnswer = function (_, answer) {
-      _this.answers.add(answer);
-    };
+    this.user = new User_1.User("u" + Date.now, Role_1.Role.audience);
   }
 
-  SwitchOnSpeaker.prototype.openWebSocket = function () {
+  SwitchOnAudience.prototype.openWebSocket = function () {
     this.switchOnWebSocket.openWebSocket();
   };
 
-  SwitchOnSpeaker.prototype.closeWebSocket = function () {
+  SwitchOnAudience.prototype.closeWebSocket = function () {
     this.switchOnWebSocket.closeWebSocket();
   };
 
-  SwitchOnSpeaker.prototype.clearAnswers = function () {
-    this.switchOnWebSocket.clearAnswers(this.user);
-    this.answers.clear();
+  SwitchOnAudience.prototype.yes = function () {
+    this.switchOnWebSocket.yes(this.user);
   };
 
-  return SwitchOnSpeaker;
+  SwitchOnAudience.prototype.no = function () {
+    this.switchOnWebSocket.no(this.user);
+  };
+
+  return SwitchOnAudience;
 }();
 
-exports.SwitchOnSpeaker = SwitchOnSpeaker;
-},{"../Role":"Imv0","../User":"vNpH","./Answers":"uqh0"}],"piGB":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.WebSocketIn = void 0;
-
-var WebSocketIn =
-/** @class */
-function () {
-  function WebSocketIn(channel, apiKey) {
-    this.channel = channel;
-    this.apiKey = apiKey;
-  }
-
-  Object.defineProperty(WebSocketIn.prototype, "url", {
-    get: function get() {
-      return "wss://connect.websocket.in/v3/" + this.channel + "?apiKey=" + this.apiKey;
-    },
-    enumerable: false,
-    configurable: true
-  });
-  return WebSocketIn;
-}();
-
-exports.WebSocketIn = WebSocketIn;
-},{}],"vNG5":[function(require,module,exports) {
+exports.SwitchOnAudience = SwitchOnAudience;
+},{"../Role":"Imv0","../User":"vNpH"}],"vNG5":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -12340,14 +12254,38 @@ function () {
         _this.onClearAnswers(_this);
       }
     });
+    socket.addEventListener('error', function (e) {
+      console.log('error', e);
+    });
+    socket.addEventListener('close', function (e) {
+      console.log('close', e);
+    });
+  };
+
+  SwitchOnWebSocketImpl.prototype.throwIfNotOpen = function () {
+    if (!this.socket) {
+      throw 'websocketを起動していない';
+    }
+
+    if (this.socket.readyState == WebSocket.OPEN) {
+      return;
+    }
+
+    if (this.socket.readyState == WebSocket.CONNECTING) {
+      throw 'websocketが接続中です。しばらくお待ちください';
+    }
+
+    throw 'websocketが切れています。リロードしてやり直してください';
   };
 
   SwitchOnWebSocketImpl.prototype.closeWebSocket = function () {
+    this.throwIfNotOpen();
     clearInterval(this.keepaliveIntervalId);
     this.socket.close();
   };
 
   SwitchOnWebSocketImpl.prototype.yes = function (user) {
+    this.throwIfNotOpen();
     var obj = {
       type: 'answer',
       answer: 'yes',
@@ -12358,6 +12296,7 @@ function () {
   };
 
   SwitchOnWebSocketImpl.prototype.no = function (user) {
+    this.throwIfNotOpen();
     var obj = {
       type: 'answer',
       answer: 'no',
@@ -12368,6 +12307,7 @@ function () {
   };
 
   SwitchOnWebSocketImpl.prototype.clearAnswers = function (user) {
+    this.throwIfNotOpen();
     var obj = {
       type: 'clearAnswers',
       userId: user.userId,
@@ -12380,38 +12320,7 @@ function () {
 }();
 
 exports.SwitchOnWebSocketImpl = SwitchOnWebSocketImpl;
-},{"../domain/Answer":"vNG5","../domain/User":"vNpH"}],"BHXf":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.getQuery = void 0;
-/**
- * urlのqueryから値を取得する。ない場合はnullを返す
- * @param key
- */
-
-function getQuery(key) {
-  if (location.search.indexOf('?') != 0) {
-    return null;
-  }
-
-  var kvList = location.search.split('?')[1].split('#')[0].split('&');
-  var prefix = key + '=';
-  var oneAry = kvList.filter(function (v) {
-    return v.indexOf(prefix) == 0;
-  });
-
-  if (oneAry.length != 1) {
-    return null;
-  }
-
-  return decodeURI(oneAry[0].slice(prefix.length));
-}
-
-exports.getQuery = getQuery;
-},{}],"llGn":[function(require,module,exports) {
+},{"../domain/Answer":"vNG5","../domain/User":"vNpH"}],"Y3J2":[function(require,module,exports) {
 "use strict";
 
 var __importDefault = this && this.__importDefault || function (mod) {
@@ -12426,46 +12335,55 @@ Object.defineProperty(exports, "__esModule", {
 
 var vue_js_1 = __importDefault(require("vue/dist/vue.js"));
 
-var Answers_1 = require("./ts/domain/speaker/Answers");
-
-var SwitchOnSpeaker_1 = require("./ts/domain/speaker/SwitchOnSpeaker");
-
-var WebSocketIn_1 = require("./ts/websocket/WebSocketIn");
+var SwitchOnAudience_1 = require("./ts/domain/audience/SwitchOnAudience");
 
 var SwitchOnWebSocketImpl_1 = require("./ts/websocket/SwitchOnWebSocketImpl");
 
-var util_1 = require("./util");
+function getWebSocketUrl() {
+  if (location.search.indexOf('?') != 0) {
+    return null;
+  }
 
-var switchOnSpeaker;
+  var kvList = location.search.split('?')[1].split('#')[0].split('?');
+  var prefix = 'ws=';
+  var oneAry = kvList.filter(function (v) {
+    return v.indexOf(prefix) == 0;
+  });
+
+  if (oneAry.length != 1) {
+    return null;
+  }
+
+  return decodeURIComponent(oneAry[0].slice(prefix.length));
+}
+
+console.log(getWebSocketUrl());
+var switchOnAudience;
 var app = new vue_js_1.default({
   el: '#app',
   data: {
-    apiKey: util_1.getQuery('apikey'),
-    channel: util_1.getQuery('channel'),
-    apiKeyInput: util_1.getQuery('apikey'),
-    channelInput: util_1.getQuery('channel'),
-    websocketin: new WebSocketIn_1.WebSocketIn('1', 'g7qE0EtTIkvj4LxlM71jGCOlMRpd0Rl6PZxLsoDetByzU3uP3RgmAmvxgctx'),
-    isInRoom: false,
-    audienceUrl: null,
-    answers: new Answers_1.Answers()
+    webSocketUrl: getWebSocketUrl(),
+    isInRoom: false
   },
   methods: {
     pressCreateRoomButton: function pressCreateRoomButton() {
-      console.log(this.apiKeyInput, this.channelInput);
-      var webSocketIn = new WebSocketIn_1.WebSocketIn(this.channelInput, this.apiKeyInput);
-      switchOnSpeaker = new SwitchOnSpeaker_1.SwitchOnSpeaker(new SwitchOnWebSocketImpl_1.SwitchOnWebSocketImpl(webSocketIn.url));
-      this.apiKey = webSocketIn.apiKey;
-      this.channel = webSocketIn.channel;
-      this.answers = switchOnSpeaker.answers;
-      switchOnSpeaker.openWebSocket();
+      console.log('pressed');
+
+      if (!this.webSocketUrl) {
+        throw 'webSocketのURLが不明です';
+      }
+
+      switchOnAudience = new SwitchOnAudience_1.SwitchOnAudience(new SwitchOnWebSocketImpl_1.SwitchOnWebSocketImpl(this.webSocketUrl));
+      switchOnAudience.openWebSocket();
       this.isInRoom = true;
-      this.audienceUrl = "" + location.origin + location.pathname.split('speaker').join('audience') + "?ws=" + encodeURIComponent(webSocketIn.url);
     },
-    pressclearButton: function pressclearButton() {
-      switchOnSpeaker.clearAnswers();
+    pressYesButton: function pressYesButton() {
+      switchOnAudience.yes();
+    },
+    pressNoButton: function pressNoButton() {
+      switchOnAudience.no();
     }
   }
 });
-console.log(new WebSocketIn_1.WebSocketIn('1', 'g7qE0EtTIkvj4LxlM71jGCOlMRpd0Rl6PZxLsoDetByzU3uP3RgmAmvxgctx').url);
-},{"vue/dist/vue.js":"HbND","./ts/domain/speaker/Answers":"uqh0","./ts/domain/speaker/SwitchOnSpeaker":"NUXp","./ts/websocket/WebSocketIn":"piGB","./ts/websocket/SwitchOnWebSocketImpl":"ZBIv","./util":"BHXf"}]},{},["llGn"], null)
-//# sourceMappingURL=speaker.b7fa6c86.js.map
+},{"vue/dist/vue.js":"HbND","./ts/domain/audience/SwitchOnAudience":"EIJf","./ts/websocket/SwitchOnWebSocketImpl":"ZBIv"}]},{},["Y3J2"], null)
+//# sourceMappingURL=audience.ac390053.js.map
