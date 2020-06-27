@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<h1>スイッチオン</h1>
+<div id="app">
+<template v-if="!apiKey">
+Websocket.INの値を入力してください
+apiKey: <input type="text" v-model="apiKeyInput"></input><br>
+channel: <input type="text" v-model="channelInput"></input><br>
+<button v-on:click="pressCreateRoomButton()">部屋を作る</button><br>
+</template>
+<template v-else-if="!channel">
+  チャンネルを指定してください
+  <input type="text" v-model="channelInput"></input><br>
+  <button v-on:click="pressCreateRoomButton()">部屋を作る</button><br>
+</template>
+<template v-else-if="!isInRoom">
+  <button v-on:click="pressCreateRoomButton()">部屋を作る</button><br>
+</template>
+<template v-else="!isInRoom">
+  <p> yes: {{answers.yesCount}}</p>
+  <p> no: {{answers.noCount}}</p>
+  <p> total: {{answers.totalCount}}</p>
+  <button v-on:click="pressclearButton()">クリア</button><br>
+  解答用URL：観衆に下記URLを伝えてください<br>
+  <a v-bind:href="audienceUrl">{{audienceUrl}}</a>
+</template>
+</div>
+<script src="speaker.ts"></script>
