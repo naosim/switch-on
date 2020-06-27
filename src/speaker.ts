@@ -17,24 +17,32 @@ var app = new Vue({
     websocketin: new WebSocketIn('1', 'g7qE0EtTIkvj4LxlM71jGCOlMRpd0Rl6PZxLsoDetByzU3uP3RgmAmvxgctx'),
     isInRoom: false,
     audienceUrl: null,
-    answers: new Answers()
+    answers: new Answers(),
+    isPointVisible: true
   },
   methods: {
     pressCreateRoomButton: function() {
       console.log(this.apiKeyInput, this.channelInput);
       var webSocketIn = new WebSocketIn(this.channelInput, this.apiKeyInput);
-      switchOnSpeaker = new SwitchOnSpeaker(new SwitchOnWebSocketImpl(webSocketIn.url))
       this.apiKey = webSocketIn.apiKey;
       this.channel = webSocketIn.channel;
-      this.answers = switchOnSpeaker.answers;
-      switchOnSpeaker.openWebSocket();
-      this.isInRoom = true;
-      this.audienceUrl = `${location.origin}${location.pathname.split('speaker').join('audience')}?ws=${encodeURIComponent(webSocketIn.url)}`
+      if(this.apiKey && this.apiKey.length > 0 && this.channel && this.channel.length > 0) {
+        switchOnSpeaker = new SwitchOnSpeaker(new SwitchOnWebSocketImpl(webSocketIn.url))
+        this.answers = switchOnSpeaker.answers;
+        switchOnSpeaker.openWebSocket();
+        this.isInRoom = true;
+        this.audienceUrl = `${location.origin}${location.pathname.split('speaker').join('audience')}?ws=${encodeURIComponent(webSocketIn.url)}`
+      }
     },
     pressclearButton: function() {
       switchOnSpeaker.clearAnswers()
     },
-    
+    pointVisibleTrue() {
+      this.isPointVisible = true;
+    },
+    pointVisibleFalse() {
+      this.isPointVisible = false;
+    }
   }
 })
 

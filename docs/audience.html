@@ -1,5 +1,12 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
+<link rel="stylesheet" href="skyblue.955f16fe.css">
+<style>body {
+    margin: 24px;
+    text-align: center;
+    line-height: unset;
+  }</style>
+
 <h1>スイッチオン 観衆用</h1>
 <div id="app">
 <template v-if="!webSocketUrl">
@@ -7,11 +14,20 @@
   登壇者に正しいURLを聞いてください<br>
 </template>
 <template v-else-if="!isInRoom">
-  <button v-on:click="pressCreateRoomButton()">部屋に入る</button><br>
+  <div class="row" style="margin-top: 60px;">
+    <div class="col md-12"><button class="btn btn-empty btn-lg" v-on:click="pressCreateRoomButton()">部屋に入る</button></div>
+  </div>
+  
 </template>
+
+<!-- <template> -->
 <template v-else="">
-  <button v-on:click="pressYesButton()">YES</button><br>
-  <button v-on:click="pressNoButton()">NO</button><br>  
+  <div class="row" style="margin-top: 60px;">
+    <div class="col md-2"></div>
+    <div class="col md-4"><button class="btn btn-empty btn-lg" v-on:click="pressYesButton()">YES</button></div>
+    <div class="col md-4"><button class="btn btn-empty btn-light btn-lg" v-on:click="pressNoButton()">NO</button></div>
+    <div class="col md-2"></div>
+  </div>
 </template>
 
 
@@ -19,4 +35,4 @@
 
 </div>
 
-<script src="audience.82645abe.js"></script>
+<script src="audience.ac390053.js"></script>

@@ -39,20 +39,42 @@ export class SwitchOnWebSocketImpl implements SwitchOnWebSocket {
         this.onClearAnswers(this);
       }
     });
+
+    socket.addEventListener('error', (e) => { console.log('error', e) })
+    socket.addEventListener('close', (e) => {
+      console.log('close', e);
+
+    })
+  }
+  throwIfNotOpen() {
+    if(!this.socket) {
+      throw 'websocketを起動していない';
+    }
+    if(this.socket.readyState == WebSocket.OPEN) {
+      return;
+    }
+    if(this.socket.readyState == WebSocket.CONNECTING) {
+      throw 'websocketが接続中です。しばらくお待ちください';
+    }
+    throw 'websocketが切れています。リロードしてやり直してください';
   }
   closeWebSocket() {
+    this.throwIfNotOpen();
     clearInterval(this.keepaliveIntervalId);
     this.socket.close();
   }
   yes(user: User) {
+    this.throwIfNotOpen();
     var obj = { type: 'answer', answer: 'yes', userId: user.userId, role: user.role };
     this.socket.send(JSON.stringify(obj));
   }
   no(user: User) {
+    this.throwIfNotOpen();
     var obj = { type: 'answer', answer: 'no', userId: user.userId, role: user.role };
     this.socket.send(JSON.stringify(obj));
   }
   clearAnswers(user: User) {
+    this.throwIfNotOpen();
     var obj = { type: 'clearAnswers', userId: user.userId, role: user.role };
     this.socket.send(JSON.stringify(obj));
   }

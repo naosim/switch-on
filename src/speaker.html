@@ -1,28 +1,94 @@
 <!DOCTYPE html>
 <meta charset="utf-8" />
+<link rel="stylesheet" href="css/skyblue.css">
+<style>
+  body {
+    margin: 24px;
+    text-align: center;
+    line-height: unset;
+  }
+  .forms {
+    max-width: 480px;
+    margin:0 auto;
+  }
+  .yesno-box {
+    height: 320px;
+    font-size: 44pt;
+    font-weight: bold;
+  }
+  /* p {
+    margin-bottom: 0px;
+  } */
+  .yes {
+    background-color: #3498DB;
+    color: white;
+    height: 320px;
+  }
+  .no {
+    background-color: #ddd;
+    color: #d77;
+    height: 320px;
+  }
+  .thinking {
+    background-color: #fafafa;
+    height: 320px;
+    line-height: 320px;
+    color:#aaa;
+    font-size: 100pt;
+  }
+  .header {
+    margin-top: 20px;
+  }
+  .count {
+    line-height: 212px;
+    font-size: 160pt;
+    margin-bottom: 12px;
+  }
+  .total {
+    font-size: 24pt;
+    line-height: 1.5em;
+    color: #777;
+  }
+  .total>span {
+    font-size: 26pt;
+  }
+</style>
+
 <h1>スイッチオン</h1>
 <div id="app">
-<template v-if="!apiKey">
-Websocket.INの値を入力してください
-apiKey: <input type="text" v-model="apiKeyInput"></input><br>
-channel: <input type="text" v-model="channelInput"></input><br>
-<button v-on:click="pressCreateRoomButton()">部屋を作る</button><br>
-</template>
-<template v-else-if="!channel">
-  チャンネルを指定してください
-  <input type="text" v-model="channelInput"></input><br>
-  <button v-on:click="pressCreateRoomButton()">部屋を作る</button><br>
-</template>
+<div class="forms" v-if="!apiKey">
+Websocket.INのApiKeyを入力してください<br>
+  <input class="form-control" type="text" v-model="apiKeyInput"></input><br>
+  <button class="btn btn-empty btn-lg" v-on:click="pressCreateRoomButton()">OK</button><br>
+</div>
+<div class="forms" v-else-if="!channel">
+  チャンネルを指定してください<br>
+  <input class="form-control" type="text" v-model="channelInput"></input><br>
+  <button class="btn btn-empty btn-lg" v-on:click="pressCreateRoomButton()">部屋を作る</button><br>
+</div>
 <template v-else-if="!isInRoom">
-  <button v-on:click="pressCreateRoomButton()">部屋を作る</button><br>
+  <button class="btn btn-empty btn-lg" v-on:click="pressCreateRoomButton()">部屋を作る</button><br>
 </template>
+
+<!-- <template> -->
 <template v-else="!isInRoom">
-  <p> yes: {{answers.yesCount}}</p>
-  <p> no: {{answers.noCount}}</p>
-  <p> total: {{answers.totalCount}}</p>
-  <button v-on:click="pressclearButton()">クリア</button><br>
+  <div class="row yesno-box">
+    <template v-if="isPointVisible">
+      <div class="col md-6 yes"><div class="header">YES</div><div class="count">{{answers.yesCount}}</div></div>
+      <div class="col md-6 no"><div class="header">NO</div><div class="count">{{answers.noCount}}</div></div>
+  </template>
+  <template v-else>
+    <div class="col md-12 thinking">ナイショ</div>
+  </template>
+  </div>
+  <div class="row">
+    <div class="col md-12 total">TOTAL <span>{{answers.totalCount}}</span></div>
+  </div>
+  <button v-if="isPointVisible" class="btn btn-empty btn-lg" v-on:click="isPointVisible=false">非表示にする</button>
+  <button v-else class="btn btn-empty btn-lg" v-on:click="isPointVisible=true">表示する</button>
+  <button class="btn btn-empty btn-lg" v-on:click="pressclearButton()">クリア</button><br>
   解答用URL：観衆に下記URLを伝えてください<br>
-  <a v-bind:href="audienceUrl">{{audienceUrl}}</a>
+  <input class="form-control" type="text" v-bind:value="audienceUrl"></input><br>
 </template>
 </div>
 <script src="speaker.ts"></script>
