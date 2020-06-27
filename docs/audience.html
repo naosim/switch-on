@@ -1,6 +1,22 @@
-<!DOCTYPE html><meta charset="utf-8"><h1>スイッチオン 観衆用</h1><div id="app">
-<template v-if="!webSocketUrl"> URLが不正です。<br> 登壇者に正しいURLを聞いてください<br>
+<!DOCTYPE html>
+<meta charset="utf-8">
+<h1>スイッチオン 観衆用</h1>
+<div id="app">
+<template v-if="!webSocketUrl">
+  URLが不正です。<br>
+  登壇者に正しいURLを聞いてください<br>
 </template>
-<template v-else-if="!isInRoom"> <button v-on:click="pressCreateRoomButton()">部屋に入る</button><br>
+<template v-else-if="!isInRoom">
+  <button v-on:click="pressCreateRoomButton()">部屋に入る</button><br>
 </template>
-<template v-else=""> <button v-on:click="pressYesButton()">YES</button><br> <button v-on:click="pressNoButton()">NO</button><br> </template> </div><script src="/audience.6fbbc192.js"></script>
+<template v-else="">
+  <button v-on:click="pressYesButton()">YES</button><br>
+  <button v-on:click="pressNoButton()">NO</button><br>  
+</template>
+
+
+
+
+</div>
+
+<script src="audience.82645abe.js"></script>
