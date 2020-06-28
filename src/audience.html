@@ -32,6 +32,36 @@
     opacity: 0;
   }
 
+  .answer {
+    margin: 0 auto; 
+    width: 240px; 
+    height: 200px;
+    line-height: 200px;
+    font-size: 32pt;
+    font-weight: bold;
+    
+  }
+  .yes {
+    background-color: #3498DB;
+    color: white;
+  }
+  .no {
+    background-color: #ddd;
+    color: #d77;
+  }
+  .none {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    color: #ccc;
+  }
+  .buttons {
+    margin-top:32px;
+  }
+  .space {
+    width: 20px;
+    display: inline-block;
+  }
+
 
 </style>
 
@@ -50,12 +80,16 @@
 
 <!-- <template> -->
 <template v-else>
-  <div class="row" style="margin-top: 60px;">
-    <div class="col md-2"></div>
-    <div class="col md-4"><button class="btn btn-empty btn-lg" v-on:click="pressYesButton()">YES</button></div>
-    <div class="col md-4"><button class="btn btn-empty btn-light btn-lg" v-on:click="pressNoButton()">NO</button></div>
-    <div class="col md-2"></div>
+  <div class="answer yes" v-show="currentAnswer.value == 'yes'">YES</div>
+  <div class="answer no" v-show="currentAnswer.value == 'no'">NO</div>
+  <div class="answer none" v-show="currentAnswer.value == 'none'">未回答</div>
+
+  <div class="buttons">
+    <button class="btn btn-empty btn-lg" v-on:click="pressYesButton()">YES</button>
+    <div class="space"></div>
+    <button class="btn btn-empty btn-light btn-lg" v-on:click="pressNoButton()">NO</button>
   </div>
+  
 </template>
 
 <transition name="fade">

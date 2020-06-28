@@ -12125,29 +12125,58 @@ exports.User = User;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.SwitchOnAudience = void 0;
+exports.SwitchOnAudience = exports.CurrentAnswer = exports.AnswerType = void 0;
 
 var Role_1 = require("../Role");
 
 var User_1 = require("../User");
 
+var AnswerType;
+
+(function (AnswerType) {
+  AnswerType["yes"] = "yes";
+  AnswerType["no"] = "no";
+  AnswerType["none"] = "none";
+})(AnswerType = exports.AnswerType || (exports.AnswerType = {}));
+
+var CurrentAnswer =
+/** @class */
+function () {
+  function CurrentAnswer() {
+    this.value = AnswerType.none;
+  }
+
+  return CurrentAnswer;
+}();
+
+exports.CurrentAnswer = CurrentAnswer;
+
 var SwitchOnAudience =
 /** @class */
 function () {
-  function SwitchOnAudience(switchOnWebSocket) {
+  function SwitchOnAudience(switchOnWebSocket, currentAnswer) {
     this.switchOnWebSocket = switchOnWebSocket;
+    this.currentAnswer = currentAnswer;
     this.user = new User_1.User("u" + Date.now(), Role_1.Role.audience);
   }
 
   SwitchOnAudience.prototype.openWebSocket = function (callback) {
+    var _this = this;
+
     this.switchOnWebSocket.openWebSocket(callback);
+
+    this.switchOnWebSocket.onClearAnswers = function () {
+      _this.currentAnswer.value = AnswerType.none;
+    };
   };
 
   SwitchOnAudience.prototype.yes = function () {
+    this.currentAnswer.value = AnswerType.yes;
     this.switchOnWebSocket.yes(this.user);
   };
 
   SwitchOnAudience.prototype.no = function () {
+    this.currentAnswer.value = AnswerType.no;
     this.switchOnWebSocket.no(this.user);
   };
 
@@ -12492,7 +12521,8 @@ var app = new vue_js_1.default({
     webSocketUrl: getWebSocketUrl(),
     isInRoom: false,
     loadingStatus: new SwitchOnWebSocketImpl_1.LoadingStatus(),
-    webSocketStatus: new SwitchOnWebSocketImpl_1.WebSocketStatus()
+    webSocketStatus: new SwitchOnWebSocketImpl_1.WebSocketStatus(),
+    currentAnswer: new SwitchOnAudience_1.CurrentAnswer()
   },
   methods: {
     pressCreateRoomButton: function pressCreateRoomButton() {
@@ -12504,7 +12534,7 @@ var app = new vue_js_1.default({
         throw 'webSocketのURLが不明です';
       }
 
-      switchOnAudience = new SwitchOnAudience_1.SwitchOnAudience(new SwitchOnWebSocketImpl_1.SwitchOnWebSocketImpl(this.webSocketUrl, false, this.loadingStatus, this.webSocketStatus));
+      switchOnAudience = new SwitchOnAudience_1.SwitchOnAudience(new SwitchOnWebSocketImpl_1.SwitchOnWebSocketImpl(this.webSocketUrl, false, this.loadingStatus, this.webSocketStatus), this.currentAnswer);
       switchOnAudience.openWebSocket(function (e) {
         if (e) {
           // alert('サーバ接続に失敗しました。もう一度試してください。')
@@ -12524,4 +12554,4 @@ var app = new vue_js_1.default({
 });
 window['app'] = app;
 },{"vue/dist/vue.js":"HbND","./ts/domain/audience/SwitchOnAudience":"EIJf","./ts/websocket/SwitchOnWebSocketImpl":"ZBIv"}]},{},["Y3J2"], null)
-//# sourceMappingURL=audience.997d3291.js.map
+//# sourceMappingURL=audience.e227e764.js.map
