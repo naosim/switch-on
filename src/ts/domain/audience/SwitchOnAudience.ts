@@ -5,8 +5,8 @@ export class SwitchOnAudience {
   readonly user: User = new User(`u${Date.now()}`, Role.audience);
   constructor(private switchOnWebSocket: SwitchOnWebSocket) {
   }
-  openWebSocket() {
-    this.switchOnWebSocket.openWebSocket();
+  openWebSocket(callback:(error) => void) {
+    this.switchOnWebSocket.openWebSocket(callback);
   }
   closeWebSocket() {
     this.switchOnWebSocket.closeWebSocket();

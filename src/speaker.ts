@@ -27,11 +27,17 @@ var app = new Vue({
       this.apiKey = webSocketIn.apiKey;
       this.channel = webSocketIn.channel;
       if(this.apiKey && this.apiKey.length > 0 && this.channel && this.channel.length > 0) {
-        switchOnSpeaker = new SwitchOnSpeaker(new SwitchOnWebSocketImpl(webSocketIn.url, true))
+        var switchOnWebSocketImpl = new SwitchOnWebSocketImpl(webSocketIn.url, true);
+        switchOnSpeaker = new SwitchOnSpeaker(switchOnWebSocketImpl)
         this.answers = switchOnSpeaker.answers;
-        switchOnSpeaker.openWebSocket();
-        this.isInRoom = true;
-        this.audienceUrl = `${location.origin}${location.pathname.split('speaker').join('audience')}?ws=${encodeURIComponent(webSocketIn.url)}`
+        switchOnSpeaker.openWebSocket((e) => {
+          if(e) {
+            alert('サーバ接続に失敗しました。もう一度試してください。')
+            return;
+          }
+          this.isInRoom = true;
+          this.audienceUrl = `${location.origin}${location.pathname.split('speaker').join('audience')}?ws=${encodeURIComponent(webSocketIn.url)}`
+        });
       }
     },
     pressclearButton: function() {

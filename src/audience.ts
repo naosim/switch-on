@@ -31,8 +31,13 @@ var app = new Vue({
         throw 'webSocketのURLが不明です'
       }
       switchOnAudience = new SwitchOnAudience(new SwitchOnWebSocketImpl(this.webSocketUrl, false))
-      switchOnAudience.openWebSocket();
-      this.isInRoom = true;
+      switchOnAudience.openWebSocket((e) => {
+        if(e) {
+          alert('サーバ接続に失敗しました。もう一度試してください。')
+          return;
+        }
+        this.isInRoom = true;
+      });
     },
     pressYesButton: function() {
       switchOnAudience.yes();

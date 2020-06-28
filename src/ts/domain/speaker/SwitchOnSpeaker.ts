@@ -11,8 +11,8 @@ export class SwitchOnSpeaker {
       this.answers.add(answer);
     };
   }
-  openWebSocket() {
-    this.switchOnWebSocket.openWebSocket();
+  openWebSocket(callback:(error) => void) {
+    this.switchOnWebSocket.openWebSocket(callback);
   }
   closeWebSocket() {
     this.switchOnWebSocket.closeWebSocket();

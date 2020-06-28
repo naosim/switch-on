@@ -22,13 +22,14 @@ export class SwitchOnWebSocketImpl implements SwitchOnWebSocket {
     }, 3000);
 
   }
-  openWebSocket() {
+  openWebSocket(callback:(error) => void) {
     if (this.socket) {
       this.closeWebSocket();
     }
     const socket = new WebSocket(this.url);
     this.socket = socket;
     console.log(socket);
+    var isCallbacked = false;
     socket.addEventListener('open', (event) => {
       console.log('open', event);
       // keepalive
@@ -37,7 +38,10 @@ export class SwitchOnWebSocketImpl implements SwitchOnWebSocket {
       if (this.onOpened) {
         this.onOpened(this);
       }
-        
+      if(!isCallbacked) {
+        isCallbacked = true;
+        callback(null);
+      }
     });
     socket.addEventListener('message', (event) => {
       // console.log('message', event);
@@ -63,7 +67,13 @@ export class SwitchOnWebSocketImpl implements SwitchOnWebSocket {
       }
     });
 
-    socket.addEventListener('error', (e) => { console.log('error', e) })
+    socket.addEventListener('error', (e) => { 
+      console.log('error', e);
+      if(!isCallbacked) {
+        isCallbacked = true;
+        callback(e);
+      }
+    })
     socket.addEventListener('close', (e) => {
       console.log('close', e);
 
@@ -87,12 +97,10 @@ export class SwitchOnWebSocketImpl implements SwitchOnWebSocket {
     this.socket.close();
   }
   yes(user: User) {
-    this.throwIfNotOpen();
     var answer = Answer.yes(user, Date.now())
     this.send({ type: 'answer', answer: 'yes', userId: user.userId, role: user.role, timestamp: answer.timestamp, id: answer.eventId.value });
   }
   no(user: User) {
-    this.throwIfNotOpen();
     var answer = Answer.yes(user, Date.now())
     this.send({ type: 'answer', answer: 'no', userId: user.userId, role: user.role, timestamp: answer.timestamp, id: answer.eventId.value });
   }
