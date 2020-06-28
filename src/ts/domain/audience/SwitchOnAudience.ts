@@ -2,7 +2,7 @@ import { Role } from "../Role";
 import { User } from "../User";
 import { SwitchOnWebSocket } from "../SwitchOnWebSocket";
 export class SwitchOnAudience {
-  readonly user: User = new User(`u${Date.now}`, Role.audience);
+  readonly user: User = new User(`u${Date.now()}`, Role.audience);
   constructor(private switchOnWebSocket: SwitchOnWebSocket) {
   }
   openWebSocket() {

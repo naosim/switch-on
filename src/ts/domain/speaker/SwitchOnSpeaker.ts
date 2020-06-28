@@ -4,7 +4,7 @@ import { Answer } from "../Answer";
 import { SwitchOnWebSocket } from "../SwitchOnWebSocket";
 import { Answers } from "./Answers";
 export class SwitchOnSpeaker {
-  readonly user: User = new User(`u${Date.now}`, Role.speaker);
+  readonly user: User = new User(`u${Date.now()}`, Role.speaker);
   readonly answers: Answers = new Answers();
   constructor(private switchOnWebSocket: SwitchOnWebSocket) {
     this.switchOnWebSocket.onAnswer = (_, answer: Answer) => {

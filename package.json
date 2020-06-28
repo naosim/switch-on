@@ -7,8 +7,8 @@
     "doc": "docs"
   },
   "scripts": {
-    "start": "parcel --out-dir ./docs ./src/speaker.html ./src/audience.html",
-    "build": "parcel build --no-minify --public-url ./ --out-dir ./docs ./src/speaker.html ./src/audience.html && npm run-script cp-eyecatch",
+    "start": "parcel --out-dir ./dev ./src/speaker.html ./src/audience.html",
+    "build": "rm -rf ./docs && parcel build --no-minify --public-url ./ --out-dir ./docs ./src/speaker.html ./src/audience.html && npm run-script cp-eyecatch",
     "test": "echo \"Error: no test specified\" && exit 1",
     "cp-eyecatch": "mkdir -p docs/img && cp src/img/og_eyecatch.png docs/img"
   },

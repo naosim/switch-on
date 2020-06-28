@@ -12086,6 +12086,64 @@ var global = arguments[3];
 
 }));
 
+},{}],"uqh0":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Answers = void 0;
+
+var Answers =
+/** @class */
+function () {
+  function Answers() {
+    this.valueMap = {};
+    this.yesCount = 0;
+    this.noCount = 0;
+    this.totalCount = 0;
+  }
+
+  Answers.prototype.notifyUpdate = function () {
+    var ary = Object.values(this.valueMap);
+    this.yesCount = ary.filter(function (v) {
+      return v.isYes;
+    }).length;
+    this.noCount = ary.filter(function (v) {
+      return v.isNo;
+    }).length;
+    this.totalCount = ary.length;
+  };
+  /**
+   * 回答を追加する
+   * 同じ人が複数回答した場合、新しい方だけ残る
+   * @param answer
+   */
+
+
+  Answers.prototype.add = function (answer) {
+    if (this.valueMap[answer.user.userId]) {
+      if (this.valueMap[answer.user.userId].timestamp < answer.timestamp) {
+        console.log('update');
+        this.valueMap[answer.user.userId] = answer;
+        this.notifyUpdate();
+      }
+    } else {
+      console.log('add');
+      this.valueMap[answer.user.userId] = answer;
+      this.notifyUpdate();
+    }
+  };
+
+  Answers.prototype.clear = function () {
+    this.valueMap = {};
+    this.notifyUpdate();
+  };
+
+  return Answers;
+}();
+
+exports.Answers = Answers;
 },{}],"Imv0":[function(require,module,exports) {
 "use strict";
 
@@ -12119,47 +12177,103 @@ function () {
 }();
 
 exports.User = User;
-},{}],"EIJf":[function(require,module,exports) {
+},{}],"NUXp":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.SwitchOnAudience = void 0;
+exports.SwitchOnSpeaker = void 0;
 
 var Role_1 = require("../Role");
 
 var User_1 = require("../User");
 
-var SwitchOnAudience =
+var Answers_1 = require("./Answers");
+
+var SwitchOnSpeaker =
 /** @class */
 function () {
-  function SwitchOnAudience(switchOnWebSocket) {
+  function SwitchOnSpeaker(switchOnWebSocket) {
+    var _this = this;
+
     this.switchOnWebSocket = switchOnWebSocket;
-    this.user = new User_1.User("u" + Date.now, Role_1.Role.audience);
+    this.user = new User_1.User("u" + Date.now(), Role_1.Role.speaker);
+    this.answers = new Answers_1.Answers();
+
+    this.switchOnWebSocket.onAnswer = function (_, answer) {
+      _this.answers.add(answer);
+    };
   }
 
-  SwitchOnAudience.prototype.openWebSocket = function () {
+  SwitchOnSpeaker.prototype.openWebSocket = function () {
     this.switchOnWebSocket.openWebSocket();
   };
 
-  SwitchOnAudience.prototype.closeWebSocket = function () {
+  SwitchOnSpeaker.prototype.closeWebSocket = function () {
     this.switchOnWebSocket.closeWebSocket();
   };
 
-  SwitchOnAudience.prototype.yes = function () {
-    this.switchOnWebSocket.yes(this.user);
+  SwitchOnSpeaker.prototype.clearAnswers = function () {
+    this.switchOnWebSocket.clearAnswers(this.user);
+    this.answers.clear();
   };
 
-  SwitchOnAudience.prototype.no = function () {
-    this.switchOnWebSocket.no(this.user);
-  };
-
-  return SwitchOnAudience;
+  return SwitchOnSpeaker;
 }();
 
-exports.SwitchOnAudience = SwitchOnAudience;
-},{"../Role":"Imv0","../User":"vNpH"}],"vNG5":[function(require,module,exports) {
+exports.SwitchOnSpeaker = SwitchOnSpeaker;
+},{"../Role":"Imv0","../User":"vNpH","./Answers":"uqh0"}],"piGB":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.WebSocketIn = void 0;
+
+var WebSocketIn =
+/** @class */
+function () {
+  function WebSocketIn(channel, apiKey) {
+    this.channel = channel;
+    this.apiKey = apiKey;
+  }
+
+  Object.defineProperty(WebSocketIn.prototype, "url", {
+    get: function get() {
+      return "wss://connect.websocket.in/v3/" + this.channel + "?apiKey=" + this.apiKey;
+    },
+    enumerable: false,
+    configurable: true
+  });
+  return WebSocketIn;
+}();
+
+exports.WebSocketIn = WebSocketIn;
+},{}],"swQP":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.EventId = void 0;
+
+var EventId =
+/** @class */
+function () {
+  function EventId(value) {
+    this.value = value;
+  }
+
+  EventId.create = function (user, timestamp) {
+    return new EventId(user.userId + "_t" + timestamp);
+  };
+
+  return EventId;
+}();
+
+exports.EventId = EventId;
+},{}],"vNG5":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -12167,31 +12281,32 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.Answer = void 0;
 
+var EventId_1 = require("./EventId");
+
 var Answer =
 /** @class */
 function () {
-  function Answer(user, isYes) {
+  function Answer(eventId, user, isYes, timestamp) {
+    this.eventId = eventId;
     this.user = user;
     this.isYes = isYes;
+    this.timestamp = timestamp;
     this.isNo = !isYes;
   }
 
-  Answer.yes = function (user) {
-    return new Answer(user, true);
+  Answer.yes = function (user, timestamp) {
+    return new Answer(EventId_1.EventId.create(user, timestamp), user, true, timestamp);
   };
 
-  ;
-
-  Answer.no = function (user) {
-    return new Answer(user, false);
+  Answer.no = function (user, timestamp) {
+    return new Answer(EventId_1.EventId.create(user, timestamp), user, false, timestamp);
   };
 
-  ;
   return Answer;
 }();
 
 exports.Answer = Answer;
-},{}],"ZBIv":[function(require,module,exports) {
+},{"./EventId":"swQP"}],"ZBIv":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -12203,17 +12318,36 @@ var Answer_1 = require("../domain/Answer");
 
 var User_1 = require("../domain/User");
 
+var EventId_1 = require("../domain/EventId");
+
 var SwitchOnWebSocketImpl =
 /** @class */
 function () {
-  function SwitchOnWebSocketImpl(url) {
+  function SwitchOnWebSocketImpl(url, isSpeaker) {
+    var _this = this;
+
     this.url = url;
+    this.isSpeaker = isSpeaker;
 
     this.onOpened = function () {};
 
     this.onAnswer = function () {};
 
     this.onClearAnswers = function () {};
+
+    this.sendingList = []; // 再送信ループ
+
+    setInterval(function () {
+      if (_this.sendingList.length == 0 || !_this.socket || _this.socket.readyState != WebSocket.OPEN) {
+        return;
+      }
+
+      _this.sendingList.forEach(function (obj) {
+        return _this.socket.send(JSON.stringify(obj));
+      });
+
+      console.log('再送信');
+    }, 3000);
   }
 
   SwitchOnWebSocketImpl.prototype.openWebSocket = function () {
@@ -12232,10 +12366,13 @@ function () {
       _this.keepaliveIntervalId = setInterval(function () {
         return socket.send('{"type":"keepalive"}');
       }, 60 * 1000);
-      if (_this.onOpened) _this.onOpened(_this);
+
+      if (_this.onOpened) {
+        _this.onOpened(_this);
+      }
     });
     socket.addEventListener('message', function (event) {
-      console.log('message', event);
+      // console.log('message', event);
       var data = JSON.parse(event.data);
       console.log(data);
 
@@ -12245,13 +12382,27 @@ function () {
 
       if (data.type == 'answer') {
         var user = new User_1.User(data.userId, data.role);
-        var answer = data.answer == 'yes' ? Answer_1.Answer.yes(user) : Answer_1.Answer.no(user);
+        var timestamp = data.timestamp;
+        var answer = data.answer == 'yes' ? Answer_1.Answer.yes(user, timestamp) : Answer_1.Answer.no(user, timestamp);
 
         _this.onAnswer(_this, answer);
+
+        if (_this.isSpeaker) {
+          _this.socket.send(JSON.stringify({
+            type: 'response',
+            id: data.id
+          }));
+        }
       }
 
       if (data.type == 'clearAnswers') {
         _this.onClearAnswers(_this);
+      }
+
+      if (data.type == 'response') {
+        _this.sendingList = _this.sendingList.filter(function (v) {
+          return v.id != data.id;
+        });
       }
     });
     socket.addEventListener('error', function (e) {
@@ -12286,33 +12437,44 @@ function () {
 
   SwitchOnWebSocketImpl.prototype.yes = function (user) {
     this.throwIfNotOpen();
-    var obj = {
+    var answer = Answer_1.Answer.yes(user, Date.now());
+    this.send({
       type: 'answer',
       answer: 'yes',
       userId: user.userId,
-      role: user.role
-    };
-    this.socket.send(JSON.stringify(obj));
+      role: user.role,
+      timestamp: answer.timestamp,
+      id: answer.eventId.value
+    });
   };
 
   SwitchOnWebSocketImpl.prototype.no = function (user) {
     this.throwIfNotOpen();
-    var obj = {
+    var answer = Answer_1.Answer.yes(user, Date.now());
+    this.send({
       type: 'answer',
       answer: 'no',
       userId: user.userId,
-      role: user.role
-    };
-    this.socket.send(JSON.stringify(obj));
+      role: user.role,
+      timestamp: answer.timestamp,
+      id: answer.eventId.value
+    });
   };
 
   SwitchOnWebSocketImpl.prototype.clearAnswers = function (user) {
     this.throwIfNotOpen();
+    var eventId = EventId_1.EventId.create(user, Date.now()).value;
     var obj = {
       type: 'clearAnswers',
       userId: user.userId,
-      role: user.role
+      role: user.role,
+      id: eventId
     };
+    this.socket.send(JSON.stringify(obj));
+  };
+
+  SwitchOnWebSocketImpl.prototype.send = function (obj) {
+    this.sendingList.push(obj);
     this.socket.send(JSON.stringify(obj));
   };
 
@@ -12320,7 +12482,38 @@ function () {
 }();
 
 exports.SwitchOnWebSocketImpl = SwitchOnWebSocketImpl;
-},{"../domain/Answer":"vNG5","../domain/User":"vNpH"}],"Y3J2":[function(require,module,exports) {
+},{"../domain/Answer":"vNG5","../domain/User":"vNpH","../domain/EventId":"swQP"}],"BHXf":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.getQuery = void 0;
+/**
+ * urlのqueryから値を取得する。ない場合はnullを返す
+ * @param key
+ */
+
+function getQuery(key) {
+  if (location.search.indexOf('?') != 0) {
+    return null;
+  }
+
+  var kvList = location.search.split('?')[1].split('#')[0].split('&');
+  var prefix = key + '=';
+  var oneAry = kvList.filter(function (v) {
+    return v.indexOf(prefix) == 0;
+  });
+
+  if (oneAry.length != 1) {
+    return null;
+  }
+
+  return decodeURI(oneAry[0].slice(prefix.length));
+}
+
+exports.getQuery = getQuery;
+},{}],"llGn":[function(require,module,exports) {
 "use strict";
 
 var __importDefault = this && this.__importDefault || function (mod) {
@@ -12335,55 +12528,56 @@ Object.defineProperty(exports, "__esModule", {
 
 var vue_js_1 = __importDefault(require("vue/dist/vue.js"));
 
-var SwitchOnAudience_1 = require("./ts/domain/audience/SwitchOnAudience");
+var Answers_1 = require("./ts/domain/speaker/Answers");
+
+var SwitchOnSpeaker_1 = require("./ts/domain/speaker/SwitchOnSpeaker");
+
+var WebSocketIn_1 = require("./ts/websocket/WebSocketIn");
 
 var SwitchOnWebSocketImpl_1 = require("./ts/websocket/SwitchOnWebSocketImpl");
 
-function getWebSocketUrl() {
-  if (location.search.indexOf('?') != 0) {
-    return null;
-  }
+var util_1 = require("./util");
 
-  var kvList = location.search.split('?')[1].split('#')[0].split('?');
-  var prefix = 'ws=';
-  var oneAry = kvList.filter(function (v) {
-    return v.indexOf(prefix) == 0;
-  });
-
-  if (oneAry.length != 1) {
-    return null;
-  }
-
-  return decodeURIComponent(oneAry[0].slice(prefix.length));
-}
-
-console.log(getWebSocketUrl());
-var switchOnAudience;
+var switchOnSpeaker;
 var app = new vue_js_1.default({
   el: '#app',
   data: {
-    webSocketUrl: getWebSocketUrl(),
-    isInRoom: false
+    apiKey: util_1.getQuery('apikey'),
+    channel: util_1.getQuery('channel'),
+    apiKeyInput: util_1.getQuery('apikey'),
+    channelInput: util_1.getQuery('channel'),
+    websocketin: new WebSocketIn_1.WebSocketIn('1', 'g7qE0EtTIkvj4LxlM71jGCOlMRpd0Rl6PZxLsoDetByzU3uP3RgmAmvxgctx'),
+    isInRoom: false,
+    audienceUrl: null,
+    answers: new Answers_1.Answers(),
+    isPointVisible: true
   },
   methods: {
     pressCreateRoomButton: function pressCreateRoomButton() {
-      console.log('pressed');
+      console.log(this.apiKeyInput, this.channelInput);
+      var webSocketIn = new WebSocketIn_1.WebSocketIn(this.channelInput, this.apiKeyInput);
+      this.apiKey = webSocketIn.apiKey;
+      this.channel = webSocketIn.channel;
 
-      if (!this.webSocketUrl) {
-        throw 'webSocketのURLが不明です';
+      if (this.apiKey && this.apiKey.length > 0 && this.channel && this.channel.length > 0) {
+        switchOnSpeaker = new SwitchOnSpeaker_1.SwitchOnSpeaker(new SwitchOnWebSocketImpl_1.SwitchOnWebSocketImpl(webSocketIn.url, true));
+        this.answers = switchOnSpeaker.answers;
+        switchOnSpeaker.openWebSocket();
+        this.isInRoom = true;
+        this.audienceUrl = "" + location.origin + location.pathname.split('speaker').join('audience') + "?ws=" + encodeURIComponent(webSocketIn.url);
       }
-
-      switchOnAudience = new SwitchOnAudience_1.SwitchOnAudience(new SwitchOnWebSocketImpl_1.SwitchOnWebSocketImpl(this.webSocketUrl));
-      switchOnAudience.openWebSocket();
-      this.isInRoom = true;
     },
-    pressYesButton: function pressYesButton() {
-      switchOnAudience.yes();
+    pressclearButton: function pressclearButton() {
+      switchOnSpeaker.clearAnswers();
     },
-    pressNoButton: function pressNoButton() {
-      switchOnAudience.no();
+    pointVisibleTrue: function pointVisibleTrue() {
+      this.isPointVisible = true;
+    },
+    pointVisibleFalse: function pointVisibleFalse() {
+      this.isPointVisible = false;
     }
   }
 });
-},{"vue/dist/vue.js":"HbND","./ts/domain/audience/SwitchOnAudience":"EIJf","./ts/websocket/SwitchOnWebSocketImpl":"ZBIv"}]},{},["Y3J2"], null)
-//# sourceMappingURL=audience.ac390053.js.map
+console.log(new WebSocketIn_1.WebSocketIn('1', 'g7qE0EtTIkvj4LxlM71jGCOlMRpd0Rl6PZxLsoDetByzU3uP3RgmAmvxgctx').url);
+},{"vue/dist/vue.js":"HbND","./ts/domain/speaker/Answers":"uqh0","./ts/domain/speaker/SwitchOnSpeaker":"NUXp","./ts/websocket/WebSocketIn":"piGB","./ts/websocket/SwitchOnWebSocketImpl":"ZBIv","./util":"BHXf"}]},{},["llGn"], null)
+//# sourceMappingURL=speaker.b23df2e1.js.map

@@ -27,7 +27,7 @@ var app = new Vue({
       this.apiKey = webSocketIn.apiKey;
       this.channel = webSocketIn.channel;
       if(this.apiKey && this.apiKey.length > 0 && this.channel && this.channel.length > 0) {
-        switchOnSpeaker = new SwitchOnSpeaker(new SwitchOnWebSocketImpl(webSocketIn.url))
+        switchOnSpeaker = new SwitchOnSpeaker(new SwitchOnWebSocketImpl(webSocketIn.url, true))
         this.answers = switchOnSpeaker.answers;
         switchOnSpeaker.openWebSocket();
         this.isInRoom = true;

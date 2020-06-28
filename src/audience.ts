@@ -30,7 +30,7 @@ var app = new Vue({
       if(!this.webSocketUrl) {
         throw 'webSocketのURLが不明です'
       }
-      switchOnAudience = new SwitchOnAudience(new SwitchOnWebSocketImpl(this.webSocketUrl))
+      switchOnAudience = new SwitchOnAudience(new SwitchOnWebSocketImpl(this.webSocketUrl, false))
       switchOnAudience.openWebSocket();
       this.isInRoom = true;
     },
