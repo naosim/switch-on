@@ -8,9 +8,6 @@ export class SwitchOnAudience {
   openWebSocket(callback:(error) => void) {
     this.switchOnWebSocket.openWebSocket(callback);
   }
-  closeWebSocket() {
-    this.switchOnWebSocket.closeWebSocket();
-  }
   yes() {
     this.switchOnWebSocket.yes(this.user);
   }

@@ -12,10 +12,19 @@
     position:fixed;
     top: 0px;
     left: 0px;
-    background-color: rgba(180, 255,100, 0.5);
+    background-color: rgba(180, 255, 100, 0.5);
     width: 100%;
     padding: 4px;
   }
+  .error {
+    position:fixed;
+    top: 0px;
+    left: 0px;
+    background-color: rgba(255, 100, 100, 0.5);
+    width: 100%;
+    padding: 4px;
+  }
+
   .fade-enter-active, .fade-leave-active {
     transition: opacity .3s;
   }
@@ -50,7 +59,15 @@
 </template>
 
 <transition name="fade">
-  <div class="loading" v-show="loadingStatus.value == 'loading'">loading...</div>
+  <div class="loading" v-show="loadingStatus.value == 'loading'">送信中</div>
+</transition>
+
+<transition name="fade">
+  <div class="loading" v-show="webSocketStatus.value == 'connecting'">接続中</div>
+</transition>
+
+<transition name="fade">
+  <div class="error" v-show="webSocketStatus.value == 'close'">接続失敗...再接続します</div>
 </transition>
 
 </div>

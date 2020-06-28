@@ -12210,10 +12210,6 @@ function () {
     this.switchOnWebSocket.openWebSocket(callback);
   };
 
-  SwitchOnSpeaker.prototype.closeWebSocket = function () {
-    this.switchOnWebSocket.closeWebSocket();
-  };
-
   SwitchOnSpeaker.prototype.clearAnswers = function () {
     this.switchOnWebSocket.clearAnswers(this.user);
     this.answers.clear();
@@ -12312,7 +12308,7 @@ exports.Answer = Answer;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.SwitchOnWebSocketImpl = exports.LoadingStatus = exports.LoadingStatusType = void 0;
+exports.SwitchOnWebSocketImpl = exports.WebSocketStatus = exports.WebSocketStatusType = exports.LoadingStatus = exports.LoadingStatusType = void 0;
 
 var Answer_1 = require("../domain/Answer");
 
@@ -12343,16 +12339,37 @@ function () {
 }();
 
 exports.LoadingStatus = LoadingStatus;
+var WebSocketStatusType;
+
+(function (WebSocketStatusType) {
+  WebSocketStatusType["none"] = "none";
+  WebSocketStatusType["connecting"] = "connecting";
+  WebSocketStatusType["open"] = "open";
+  WebSocketStatusType["close"] = "close";
+})(WebSocketStatusType = exports.WebSocketStatusType || (exports.WebSocketStatusType = {}));
+
+var WebSocketStatus =
+/** @class */
+function () {
+  function WebSocketStatus() {
+    this.value = WebSocketStatusType.none;
+  }
+
+  return WebSocketStatus;
+}();
+
+exports.WebSocketStatus = WebSocketStatus;
 
 var SwitchOnWebSocketImpl =
 /** @class */
 function () {
-  function SwitchOnWebSocketImpl(url, isSpeaker, loadingStatus) {
+  function SwitchOnWebSocketImpl(url, isSpeaker, loadingStatus, webSocketStatus) {
     var _this = this;
 
     this.url = url;
     this.isSpeaker = isSpeaker;
     this.loadingStatus = loadingStatus;
+    this.webSocketStatus = webSocketStatus;
 
     this.onOpened = function () {};
 
@@ -12376,18 +12393,24 @@ function () {
   }
 
   SwitchOnWebSocketImpl.prototype.openWebSocket = function (callback) {
-    var _this = this;
+    var _this = this; // 前条件
+
+
+    if (this.socket && (this.socket.readyState == WebSocket.OPEN || this.socket.readyState == WebSocket.CONNECTING)) {
+      return;
+    }
 
     if (this.socket) {
-      this.closeWebSocket();
+      clearInterval(this.keepaliveIntervalId);
     }
 
     var socket = new WebSocket(this.url);
+    this.webSocketStatus.value = WebSocketStatusType.connecting;
     this.socket = socket;
     console.log(socket);
-    var isCallbacked = false;
     socket.addEventListener('open', function (event) {
-      console.log('open', event); // keepalive
+      console.log('open', event);
+      _this.webSocketStatus.value = WebSocketStatusType.open; // keepalive
 
       _this.keepaliveIntervalId = setInterval(function () {
         return socket.send('{"type":"keepalive"}');
@@ -12397,10 +12420,7 @@ function () {
         _this.onOpened(_this);
       }
 
-      if (!isCallbacked) {
-        isCallbacked = true;
-        callback(null);
-      }
+      callback(null);
     });
     socket.addEventListener('message', function (event) {
       // console.log('message', event);
@@ -12440,14 +12460,15 @@ function () {
     });
     socket.addEventListener('error', function (e) {
       console.log('error', e);
-
-      if (!isCallbacked) {
-        isCallbacked = true;
-        callback(e);
-      }
+      callback(e);
     });
     socket.addEventListener('close', function (e) {
       console.log('close', e);
+      console.log('再接続');
+      _this.webSocketStatus.value = WebSocketStatusType.close;
+      setTimeout(function () {
+        return _this.openWebSocket(callback);
+      }, 5000);
     });
   };
 
@@ -12465,12 +12486,6 @@ function () {
     }
 
     throw 'websocketが切れています。リロードしてやり直してください';
-  };
-
-  SwitchOnWebSocketImpl.prototype.closeWebSocket = function () {
-    this.throwIfNotOpen();
-    clearInterval(this.keepaliveIntervalId);
-    this.socket.close();
   };
 
   SwitchOnWebSocketImpl.prototype.yes = function (user) {
@@ -12591,7 +12606,8 @@ var app = new vue_js_1.default({
     isInRoom: false,
     audienceUrl: null,
     answers: new Answers_1.Answers(),
-    isPointVisible: true
+    isPointVisible: true,
+    webSocketStatus: new SwitchOnWebSocketImpl_1.WebSocketStatus()
   },
   methods: {
     pressCreateRoomButton: function pressCreateRoomButton() {
@@ -12603,12 +12619,11 @@ var app = new vue_js_1.default({
       this.channel = webSocketIn.channel;
 
       if (this.apiKey && this.apiKey.length > 0 && this.channel && this.channel.length > 0) {
-        var switchOnWebSocketImpl = new SwitchOnWebSocketImpl_1.SwitchOnWebSocketImpl(webSocketIn.url, true, new SwitchOnWebSocketImpl_1.LoadingStatus());
+        var switchOnWebSocketImpl = new SwitchOnWebSocketImpl_1.SwitchOnWebSocketImpl(webSocketIn.url, true, new SwitchOnWebSocketImpl_1.LoadingStatus(), this.webSocketStatus);
         switchOnSpeaker = new SwitchOnSpeaker_1.SwitchOnSpeaker(switchOnWebSocketImpl);
         this.answers = switchOnSpeaker.answers;
         switchOnSpeaker.openWebSocket(function (e) {
           if (e) {
-            alert('サーバ接続に失敗しました。もう一度試してください。');
             return;
           }
 
@@ -12630,4 +12645,4 @@ var app = new vue_js_1.default({
 });
 console.log(new WebSocketIn_1.WebSocketIn('1', 'g7qE0EtTIkvj4LxlM71jGCOlMRpd0Rl6PZxLsoDetByzU3uP3RgmAmvxgctx').url);
 },{"vue/dist/vue.js":"HbND","./ts/domain/speaker/Answers":"uqh0","./ts/domain/speaker/SwitchOnSpeaker":"NUXp","./ts/websocket/WebSocketIn":"piGB","./ts/websocket/SwitchOnWebSocketImpl":"ZBIv","./util":"BHXf"}]},{},["llGn"], null)
-//# sourceMappingURL=speaker.6b934fa7.js.map
+//# sourceMappingURL=speaker.32f5c358.js.map

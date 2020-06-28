@@ -16,6 +16,17 @@ export class LoadingStatus {
   public value = LoadingStatusType.none;
 }
 
+export enum WebSocketStatusType {
+  none = 'none',
+  connecting = 'connecting',
+  open = 'open',
+  close = 'close'
+}
+
+export class WebSocketStatus {
+  public value = WebSocketStatusType.none;
+}
+
 
 export class SwitchOnWebSocketImpl implements SwitchOnWebSocket {
   private socket?: WebSocket;
@@ -24,7 +35,12 @@ export class SwitchOnWebSocketImpl implements SwitchOnWebSocket {
   public onAnswer: (switchOn: SwitchOnWebSocket, answer: Answer) => void = () => { };
   public onClearAnswers: (switchOn: SwitchOnWebSocket) => void = () => { };
   public sendingList = [];
-  constructor(readonly url: string, readonly isSpeaker: boolean, readonly loadingStatus: LoadingStatus) {
+  constructor(
+    readonly url: string, 
+    readonly isSpeaker: boolean, 
+    readonly loadingStatus: LoadingStatus,
+    readonly webSocketStatus: WebSocketStatus
+  ) {
     // 再送信ループ
     setInterval(()=>{
       if(this.sendingList.length == 0 || !this.socket || this.socket.readyState != WebSocket.OPEN) {
@@ -36,25 +52,28 @@ export class SwitchOnWebSocketImpl implements SwitchOnWebSocket {
     }, 3000);
   }
   openWebSocket(callback:(error) => void) {
+    // 前条件
+    if(this.socket && (this.socket.readyState == WebSocket.OPEN || this.socket.readyState == WebSocket.CONNECTING)) {
+      return;
+    }
+
     if (this.socket) {
-      this.closeWebSocket();
+      clearInterval(this.keepaliveIntervalId);
     }
     const socket = new WebSocket(this.url);
+    this.webSocketStatus.value = WebSocketStatusType.connecting;
     this.socket = socket;
     console.log(socket);
-    var isCallbacked = false;
     socket.addEventListener('open', (event) => {
       console.log('open', event);
+      this.webSocketStatus.value = WebSocketStatusType.open;
       // keepalive
       this.keepaliveIntervalId = setInterval(() => socket.send('{"type":"keepalive"}'), 60 * 1000);
 
       if (this.onOpened) {
         this.onOpened(this);
       }
-      if(!isCallbacked) {
-        isCallbacked = true;
-        callback(null);
-      }
+      callback(null);
     });
     socket.addEventListener('message', (event) => {
       // console.log('message', event);
@@ -83,14 +102,13 @@ export class SwitchOnWebSocketImpl implements SwitchOnWebSocket {
 
     socket.addEventListener('error', (e) => { 
       console.log('error', e);
-      if(!isCallbacked) {
-        isCallbacked = true;
-        callback(e);
-      }
+      callback(e);
     })
     socket.addEventListener('close', (e) => {
       console.log('close', e);
-
+      console.log('再接続');
+      this.webSocketStatus.value = WebSocketStatusType.close;
+      setTimeout(() => this.openWebSocket(callback), 5000);
     })
   }
   throwIfNotOpen() {
@@ -104,11 +122,6 @@ export class SwitchOnWebSocketImpl implements SwitchOnWebSocket {
       throw 'websocketが接続中です。しばらくお待ちください';
     }
     throw 'websocketが切れています。リロードしてやり直してください';
-  }
-  closeWebSocket() {
-    this.throwIfNotOpen();
-    clearInterval(this.keepaliveIntervalId);
-    this.socket.close();
   }
   yes(user: User) {
     var answer = Answer.yes(user, Date.now())

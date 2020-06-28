@@ -2,7 +2,7 @@ import Vue from 'vue/dist/vue.js';
 import { Answers } from "./ts/domain/speaker/Answers";
 import { SwitchOnSpeaker } from "./ts/domain/speaker/SwitchOnSpeaker";
 import { WebSocketIn } from "./ts/websocket/WebSocketIn";
-import { SwitchOnWebSocketImpl, LoadingStatus } from "./ts/websocket/SwitchOnWebSocketImpl";
+import { SwitchOnWebSocketImpl, LoadingStatus, WebSocketStatus } from "./ts/websocket/SwitchOnWebSocketImpl";
 import { getQuery } from './util';
 
 
@@ -18,7 +18,8 @@ var app = new Vue({
     isInRoom: false,
     audienceUrl: null,
     answers: new Answers(),
-    isPointVisible: true
+    isPointVisible: true,
+    webSocketStatus: new WebSocketStatus(),
   },
   methods: {
     pressCreateRoomButton: function() {
@@ -27,12 +28,11 @@ var app = new Vue({
       this.apiKey = webSocketIn.apiKey;
       this.channel = webSocketIn.channel;
       if(this.apiKey && this.apiKey.length > 0 && this.channel && this.channel.length > 0) {
-        var switchOnWebSocketImpl = new SwitchOnWebSocketImpl(webSocketIn.url, true, new LoadingStatus());
+        var switchOnWebSocketImpl = new SwitchOnWebSocketImpl(webSocketIn.url, true, new LoadingStatus(), this.webSocketStatus);
         switchOnSpeaker = new SwitchOnSpeaker(switchOnWebSocketImpl)
         this.answers = switchOnSpeaker.answers;
         switchOnSpeaker.openWebSocket((e) => {
           if(e) {
-            alert('サーバ接続に失敗しました。もう一度試してください。')
             return;
           }
           this.isInRoom = true;

@@ -14,9 +14,6 @@ export class SwitchOnSpeaker {
   openWebSocket(callback:(error) => void) {
     this.switchOnWebSocket.openWebSocket(callback);
   }
-  closeWebSocket() {
-    this.switchOnWebSocket.closeWebSocket();
-  }
   clearAnswers() {
     this.switchOnWebSocket.clearAnswers(this.user);
     this.answers.clear();

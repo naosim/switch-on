@@ -9,7 +9,6 @@ export interface SwitchOnWebSocket {
   onAnswer: (switchOn: SwitchOnWebSocket, answer: Answer) => void;
   onClearAnswers: (switchOn: SwitchOnWebSocket) => void;
   openWebSocket(callback:(error) => void);
-  closeWebSocket();
   yes(user: User);
   no(user: User);
   clearAnswers(user: User);

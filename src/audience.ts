@@ -1,6 +1,6 @@
 import Vue from 'vue/dist/vue.js';
 import { SwitchOnAudience } from "./ts/domain/audience/SwitchOnAudience";
-import { SwitchOnWebSocketImpl, LoadingStatus } from "./ts/websocket/SwitchOnWebSocketImpl";
+import { SwitchOnWebSocketImpl, LoadingStatus, WebSocketStatus } from "./ts/websocket/SwitchOnWebSocketImpl";
 
 
 function getWebSocketUrl() {
@@ -23,7 +23,8 @@ var app = new Vue({
   data: {
     webSocketUrl: getWebSocketUrl(),
     isInRoom: false,
-    loadingStatus: new LoadingStatus()
+    loadingStatus: new LoadingStatus(),
+    webSocketStatus: new WebSocketStatus()
   },
   methods: {
     pressCreateRoomButton: function() {
@@ -31,10 +32,10 @@ var app = new Vue({
       if(!this.webSocketUrl) {
         throw 'webSocketのURLが不明です'
       }
-      switchOnAudience = new SwitchOnAudience(new SwitchOnWebSocketImpl(this.webSocketUrl, false, this.loadingStatus))
+      switchOnAudience = new SwitchOnAudience(new SwitchOnWebSocketImpl(this.webSocketUrl, false, this.loadingStatus, this.webSocketStatus))
       switchOnAudience.openWebSocket((e) => {
         if(e) {
-          alert('サーバ接続に失敗しました。もう一度試してください。')
+          // alert('サーバ接続に失敗しました。もう一度試してください。')
           return;
         }
         this.isInRoom = true;

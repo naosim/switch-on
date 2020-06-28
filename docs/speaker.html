@@ -63,6 +63,29 @@
   }
   .total>span {
     font-size: 26pt;
+  }
+
+  .loading {
+    position:fixed;
+    top: 0px;
+    left: 0px;
+    background-color: rgba(180, 255, 100, 0.5);
+    width: 100%;
+    padding: 4px;
+  }
+  .error {
+    position:fixed;
+    top: 0px;
+    left: 0px;
+    background-color: rgba(255, 100, 100, 0.5);
+    width: 100%;
+    padding: 4px;
+  }
+  .fade-enter-active, .fade-leave-active {
+    transition: opacity .3s;
+  }
+  .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+    opacity: 0;
   }</style>
 
 <h1>スイッチオン</h1>
@@ -101,5 +124,13 @@ Websocket.INのApiKeyを入力してください<br>
   回答用URL：観衆に下記URLを伝えてください<br>
   <input class="form-control" type="text" v-bind:value="audienceUrl"><br>
 </template>
+
+<transition name="fade">
+  <div class="loading" v-show="webSocketStatus.value == 'connecting'">接続中</div>
+</transition>
+
+<transition name="fade">
+  <div class="error" v-show="webSocketStatus.value == 'close'">接続失敗...再接続します</div>
+</transition>
 </div>
-<script src="speaker.6b934fa7.js"></script>
+<script src="speaker.32f5c358.js"></script>
