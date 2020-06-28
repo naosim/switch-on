@@ -2,6 +2,7 @@
 リモート会議中に簡単なアンケートをするシステムです。  
 YES/NOのアンケートをとることができます。  
 利用するためにはWebSocket.INのApiKeyが必要です。
+![アンケート結果の画像](https://naosim.github.io/switch-on/img/og_eyecatch.png)
 
 # 利用者アクター
 - 登壇者: アンケートを出す側です。
