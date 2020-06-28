@@ -12312,7 +12312,7 @@ exports.Answer = Answer;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.SwitchOnWebSocketImpl = void 0;
+exports.SwitchOnWebSocketImpl = exports.LoadingStatus = exports.LoadingStatusType = void 0;
 
 var Answer_1 = require("../domain/Answer");
 
@@ -12320,14 +12320,39 @@ var User_1 = require("../domain/User");
 
 var EventId_1 = require("../domain/EventId");
 
+var LoadingStatusType;
+
+(function (LoadingStatusType) {
+  LoadingStatusType["none"] = "none";
+  LoadingStatusType["loading"] = "loading";
+})(LoadingStatusType = exports.LoadingStatusType || (exports.LoadingStatusType = {}));
+/**
+ * 画面表示用
+ * valueの値を外からいじる
+ */
+
+
+var LoadingStatus =
+/** @class */
+function () {
+  function LoadingStatus() {
+    this.value = LoadingStatusType.none;
+  }
+
+  return LoadingStatus;
+}();
+
+exports.LoadingStatus = LoadingStatus;
+
 var SwitchOnWebSocketImpl =
 /** @class */
 function () {
-  function SwitchOnWebSocketImpl(url, isSpeaker) {
+  function SwitchOnWebSocketImpl(url, isSpeaker, loadingStatus) {
     var _this = this;
 
     this.url = url;
     this.isSpeaker = isSpeaker;
+    this.loadingStatus = loadingStatus;
 
     this.onOpened = function () {};
 
@@ -12409,6 +12434,8 @@ function () {
         _this.sendingList = _this.sendingList.filter(function (v) {
           return v.id != data.id;
         });
+
+        _this.updateLoadingStatus();
       }
     });
     socket.addEventListener('error', function (e) {
@@ -12484,7 +12511,12 @@ function () {
 
   SwitchOnWebSocketImpl.prototype.send = function (obj) {
     this.sendingList.push(obj);
+    this.updateLoadingStatus();
     this.socket.send(JSON.stringify(obj));
+  };
+
+  SwitchOnWebSocketImpl.prototype.updateLoadingStatus = function () {
+    this.loadingStatus.value = this.sendingList.length == 0 ? LoadingStatusType.none : LoadingStatusType.loading;
   };
 
   return SwitchOnWebSocketImpl;
@@ -12571,7 +12603,7 @@ var app = new vue_js_1.default({
       this.channel = webSocketIn.channel;
 
       if (this.apiKey && this.apiKey.length > 0 && this.channel && this.channel.length > 0) {
-        var switchOnWebSocketImpl = new SwitchOnWebSocketImpl_1.SwitchOnWebSocketImpl(webSocketIn.url, true);
+        var switchOnWebSocketImpl = new SwitchOnWebSocketImpl_1.SwitchOnWebSocketImpl(webSocketIn.url, true, new SwitchOnWebSocketImpl_1.LoadingStatus());
         switchOnSpeaker = new SwitchOnSpeaker_1.SwitchOnSpeaker(switchOnWebSocketImpl);
         this.answers = switchOnSpeaker.answers;
         switchOnSpeaker.openWebSocket(function (e) {
@@ -12598,4 +12630,4 @@ var app = new vue_js_1.default({
 });
 console.log(new WebSocketIn_1.WebSocketIn('1', 'g7qE0EtTIkvj4LxlM71jGCOlMRpd0Rl6PZxLsoDetByzU3uP3RgmAmvxgctx').url);
 },{"vue/dist/vue.js":"HbND","./ts/domain/speaker/Answers":"uqh0","./ts/domain/speaker/SwitchOnSpeaker":"NUXp","./ts/websocket/WebSocketIn":"piGB","./ts/websocket/SwitchOnWebSocketImpl":"ZBIv","./util":"BHXf"}]},{},["llGn"], null)
-//# sourceMappingURL=speaker.a262db35.js.map
+//# sourceMappingURL=speaker.6b934fa7.js.map

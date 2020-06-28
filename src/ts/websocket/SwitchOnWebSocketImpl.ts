@@ -3,14 +3,28 @@ import { Answer } from "../domain/Answer";
 import { User } from "../domain/User";
 import { EventId } from "../domain/EventId";
 
+export enum LoadingStatusType {
+  none = 'none',
+  loading = 'loading'
+}
+
+/**
+ * 画面表示用
+ * valueの値を外からいじる
+ */
+export class LoadingStatus {
+  public value = LoadingStatusType.none;
+}
+
+
 export class SwitchOnWebSocketImpl implements SwitchOnWebSocket {
   private socket?: WebSocket;
   private keepaliveIntervalId?: number;
   public onOpened: (switchOn: SwitchOnWebSocket) => void = () => { };
   public onAnswer: (switchOn: SwitchOnWebSocket, answer: Answer) => void = () => { };
   public onClearAnswers: (switchOn: SwitchOnWebSocket) => void = () => { };
-  private sendingList = [];
-  constructor(readonly url: string, readonly isSpeaker: boolean) {
+  public sendingList = [];
+  constructor(readonly url: string, readonly isSpeaker: boolean, readonly loadingStatus: LoadingStatus) {
     // 再送信ループ
     setInterval(()=>{
       if(this.sendingList.length == 0 || !this.socket || this.socket.readyState != WebSocket.OPEN) {
@@ -20,7 +34,6 @@ export class SwitchOnWebSocketImpl implements SwitchOnWebSocket {
       console.log('再送信');
 
     }, 3000);
-
   }
   openWebSocket(callback:(error) => void) {
     if (this.socket) {
@@ -64,6 +77,7 @@ export class SwitchOnWebSocketImpl implements SwitchOnWebSocket {
       }
       if(data.type == 'response') {
         this.sendingList = this.sendingList.filter(v => v.id != data.id);
+        this.updateLoadingStatus();
       }
     });
 
@@ -112,6 +126,10 @@ export class SwitchOnWebSocketImpl implements SwitchOnWebSocket {
   }
   send(obj: any) {
     this.sendingList.push(obj);
+    this.updateLoadingStatus();
     this.socket.send(JSON.stringify(obj));
+  }
+  updateLoadingStatus() {
+    this.loadingStatus.value = this.sendingList.length == 0 ? LoadingStatusType.none : LoadingStatusType.loading;
   }
 }

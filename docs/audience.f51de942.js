@@ -12221,7 +12221,7 @@ exports.Answer = Answer;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.SwitchOnWebSocketImpl = void 0;
+exports.SwitchOnWebSocketImpl = exports.LoadingStatus = exports.LoadingStatusType = void 0;
 
 var Answer_1 = require("../domain/Answer");
 
@@ -12229,14 +12229,39 @@ var User_1 = require("../domain/User");
 
 var EventId_1 = require("../domain/EventId");
 
+var LoadingStatusType;
+
+(function (LoadingStatusType) {
+  LoadingStatusType["none"] = "none";
+  LoadingStatusType["loading"] = "loading";
+})(LoadingStatusType = exports.LoadingStatusType || (exports.LoadingStatusType = {}));
+/**
+ * 画面表示用
+ * valueの値を外からいじる
+ */
+
+
+var LoadingStatus =
+/** @class */
+function () {
+  function LoadingStatus() {
+    this.value = LoadingStatusType.none;
+  }
+
+  return LoadingStatus;
+}();
+
+exports.LoadingStatus = LoadingStatus;
+
 var SwitchOnWebSocketImpl =
 /** @class */
 function () {
-  function SwitchOnWebSocketImpl(url, isSpeaker) {
+  function SwitchOnWebSocketImpl(url, isSpeaker, loadingStatus) {
     var _this = this;
 
     this.url = url;
     this.isSpeaker = isSpeaker;
+    this.loadingStatus = loadingStatus;
 
     this.onOpened = function () {};
 
@@ -12318,6 +12343,8 @@ function () {
         _this.sendingList = _this.sendingList.filter(function (v) {
           return v.id != data.id;
         });
+
+        _this.updateLoadingStatus();
       }
     });
     socket.addEventListener('error', function (e) {
@@ -12393,7 +12420,12 @@ function () {
 
   SwitchOnWebSocketImpl.prototype.send = function (obj) {
     this.sendingList.push(obj);
+    this.updateLoadingStatus();
     this.socket.send(JSON.stringify(obj));
+  };
+
+  SwitchOnWebSocketImpl.prototype.updateLoadingStatus = function () {
+    this.loadingStatus.value = this.sendingList.length == 0 ? LoadingStatusType.none : LoadingStatusType.loading;
   };
 
   return SwitchOnWebSocketImpl;
@@ -12443,7 +12475,8 @@ var app = new vue_js_1.default({
   el: '#app',
   data: {
     webSocketUrl: getWebSocketUrl(),
-    isInRoom: false
+    isInRoom: false,
+    loadingStatus: new SwitchOnWebSocketImpl_1.LoadingStatus()
   },
   methods: {
     pressCreateRoomButton: function pressCreateRoomButton() {
@@ -12455,7 +12488,7 @@ var app = new vue_js_1.default({
         throw 'webSocketのURLが不明です';
       }
 
-      switchOnAudience = new SwitchOnAudience_1.SwitchOnAudience(new SwitchOnWebSocketImpl_1.SwitchOnWebSocketImpl(this.webSocketUrl, false));
+      switchOnAudience = new SwitchOnAudience_1.SwitchOnAudience(new SwitchOnWebSocketImpl_1.SwitchOnWebSocketImpl(this.webSocketUrl, false, this.loadingStatus));
       switchOnAudience.openWebSocket(function (e) {
         if (e) {
           alert('サーバ接続に失敗しました。もう一度試してください。');
@@ -12473,5 +12506,6 @@ var app = new vue_js_1.default({
     }
   }
 });
+window['app'] = app;
 },{"vue/dist/vue.js":"HbND","./ts/domain/audience/SwitchOnAudience":"EIJf","./ts/websocket/SwitchOnWebSocketImpl":"ZBIv"}]},{},["Y3J2"], null)
-//# sourceMappingURL=audience.32db9bd2.js.map
+//# sourceMappingURL=audience.f51de942.js.map

@@ -2,7 +2,7 @@ import Vue from 'vue/dist/vue.js';
 import { Answers } from "./ts/domain/speaker/Answers";
 import { SwitchOnSpeaker } from "./ts/domain/speaker/SwitchOnSpeaker";
 import { WebSocketIn } from "./ts/websocket/WebSocketIn";
-import { SwitchOnWebSocketImpl } from "./ts/websocket/SwitchOnWebSocketImpl";
+import { SwitchOnWebSocketImpl, LoadingStatus } from "./ts/websocket/SwitchOnWebSocketImpl";
 import { getQuery } from './util';
 
 
@@ -27,7 +27,7 @@ var app = new Vue({
       this.apiKey = webSocketIn.apiKey;
       this.channel = webSocketIn.channel;
       if(this.apiKey && this.apiKey.length > 0 && this.channel && this.channel.length > 0) {
-        var switchOnWebSocketImpl = new SwitchOnWebSocketImpl(webSocketIn.url, true);
+        var switchOnWebSocketImpl = new SwitchOnWebSocketImpl(webSocketIn.url, true, new LoadingStatus());
         switchOnSpeaker = new SwitchOnSpeaker(switchOnWebSocketImpl)
         this.answers = switchOnSpeaker.answers;
         switchOnSpeaker.openWebSocket((e) => {
