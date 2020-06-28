@@ -93,9 +93,16 @@
 <h1>スイッチオン</h1>
 <div id="app">
 <div class="forms" v-if="!apiKey">
-Websocket.INのApiKeyを入力してください<br>
+  <a href="https://www.websocket.in" target="_blank">WebSocket.IN</a>のApiKeyを入力してください。<br>
   <input class="form-control" type="text" v-model="apiKeyInput"></input><br>
   <button class="btn btn-empty btn-lg" v-on:click="pressCreateRoomButton()">OK</button><br>
+  注意：入力したApiKeyは利用者全員に公開されます。<br>
+  ApiKeyの管理に気をつけてください。<br>
+  利用したApiKeyは削除した方が良いです。<br>
+  <br>
+  <a href="https://www.websocket.in" target="_blank">WebSocket.IN</a>とは？<br>
+  WebSocket.INは双方向通信を実現するWebSocketを利用できるサービスです。
+  
 </div>
 <div class="forms" v-else-if="!channel">
   任意のチャンネル（数字）を指定してください<br>

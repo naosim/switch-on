@@ -1,8 +1,16 @@
 # switch-on
 リモート会議中に簡単なアンケートをするシステムです。  
 YES/NOのアンケートをとることができます。  
-利用するためにはWebSocket.INのApiKeyが必要です。
+利用するためには[WebSocket.IN](https://www.websocket.in/)のApiKeyが必要です。
 ![アンケート結果の画像](https://naosim.github.io/switch-on/img/og_eyecatch.png)
+
+## WebSocket.INとは？
+WebSocket.INは双方向通信を実現するWebSocketを利用できるサービスです。
+
+# 注意
+本アプリを利用するとWebSocket.INのApiKeyが利用者全員に公開されます。  
+ApiKeyの管理に気をつけてください。  
+一度利用したApiKeyは削除するのが良いと思います。  
 
 # 利用者アクター
 - 登壇者: アンケートを出す側です。
