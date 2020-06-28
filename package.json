@@ -8,8 +8,9 @@
   },
   "scripts": {
     "start": "parcel --out-dir ./docs ./src/speaker.html ./src/audience.html",
-    "build": "parcel build --no-minify --public-url ./ --out-dir ./docs ./src/speaker.html ./src/audience.html",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "parcel build --no-minify --public-url ./ --out-dir ./docs ./src/speaker.html ./src/audience.html && npm run-script cp-eyecatch",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "cp-eyecatch": "mkdir -p docs/img && cp src/img/og_eyecatch.png docs/img"
   },
   "repository": {
     "type": "git",
